@@ -1,0 +1,40 @@
+
+div.geocoder{
+	position: relative;
+}
+
+
+div.geocoder div.places-list{
+	position: absolute;
+	width: 100%;
+}
+
+	div.geocoder div.places-list ul{
+		margin: 0px;
+    	position: relative;
+	    z-index: 100;
+	    max-height: 130px;
+	    overflow-y: scroll;
+	    width: 100%;
+	    background: #fff;
+	    padding: 10px 5px;
+	    border: 1px solid #a4b9ca;
+	    /*top: -11px;*/
+	    top: 0px;
+	}
+
+		div.geocoder div.places-list ul li{
+			list-style: none;
+			cursor: pointer;
+			padding: 2px 5px;
+			border-bottom: 1px solid #a4b9ca;
+		}
+
+		div.geocoder div.places-list ul li:last-child{
+			border-bottom: none;
+		}
+
+		div.geocoder div.places-list ul li:hover{
+			background:#3b98de;
+			color: #fff;
+		}
