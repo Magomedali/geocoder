@@ -6,6 +6,7 @@ var Place = function(){
 		locality : [],
 		area : [],
 		airport : [],
+		district: [],
 		street : [],
 		house : []
 	};
@@ -17,7 +18,7 @@ var Place = function(){
 	this.addressFormatted = null;
 	this.country = null;
 
-	this.visible = ['country','province','locality','area','airport','street','house'];
+	this.visible = ['country','province','locality','area','airport','district','street','house'];
 
 	this.init = function(components){
 		var p = new Place();
@@ -34,10 +35,9 @@ var Place = function(){
 		var html = "<li class='place_item'";
 		var c = comps && comps.length ? comps : this.visible;
 		var components = this.components;
-		this.visible.forEach(function(item){
-			html += " data-"+item+"='"+components[item].join("|")+"'";
-		});
-		html += ">";
+		
+
+		
 
 		var values = [];
 		c.forEach(function(item){
@@ -45,32 +45,16 @@ var Place = function(){
 			if(value)
 				values.push(value);
 		});
+		
+		if(!values.length) return null;
+		
+		html +=" data-value='"+this.name+"'>";
 		html += values.join(", ");
 		html +="</li>";
 
 		return html;
 	}
 
-	this.placeToValue = function(comps){
-		var html = "<li class='place_item'";
-		var c = comps && comps.length ? comps : this.visible;
-		var components = this.components;
-		this.visible.forEach(function(item){
-			html += " data-"+item+"='"+components[item].join("|")+"'";
-		});
-		html += ">";
-
-		var values = [];
-		c.forEach(function(item){
-			var value = components[item].length ? components[item].join(" ") : null;
-			if(value)
-				values.push(value);
-		});
-		html += values.join(", ");
-		html +="</li>";
-
-		return html;
-	}
 };
 
 
@@ -123,24 +107,44 @@ var aliGeocoder = function(){
 var placesToHtml = function(places,components){
 	this.html = "<ul class='yandex_places_autocomplete'>";
 	
+	var list = "";
 	if(places.length){
 		places.forEach(function(item,i){
-			this.html += item.placeToLi(components);
+			var li = item.placeToLi(components);
+			if(li)
+				list += li;
 		});
 	}
+	if(!list.length) return null;
+
+	this.html +=list;
 	this.html += "</ul>";
 
 	return this.html;
 }
 
-var placesPropertyToHtml = function(places,property,value){
+var placesPropertyToHtml = function(places,property,value,kind){
 	this.html = "<ul class='yandex_places_autocomplete'>";
 	
 	if(places.length){
 		places.forEach(function(item,i){
-			if(item.hasOwnProperty(property) && item.hasOwnProperty(value)){
-				this.html += "<li class='place_item' data-value='"+item[value]+"'>"+item[property]+"</li>";
+			var components = item.components;
+			if(kind && kind.length){
+				
+				kind.forEach(function(k){
+					if(components.hasOwnProperty(k) && components[k].length){
+						if(item.hasOwnProperty(property) && item.hasOwnProperty(value)){
+							this.html += "<li class='place_item' data-value='"+item[value]+"'>"+item[property]+"</li>";
+						}
+					}
+				});
+
+			}else{
+				if(item.hasOwnProperty(property) && item.hasOwnProperty(value)){
+					this.html += "<li class='place_item' data-value='"+item[value]+"'>"+item[property]+"</li>";
+				}
 			}
+			
 			
 		});
 	}
@@ -182,7 +186,7 @@ $(function(){
 
 							places = collect.places;
 						}
-						// var html = placesToHtml(places,['country','province','locality','area']);
+						
 						var html = placesPropertyToHtml(places,"text","addressFormatted");
 
 						list.html(html);
@@ -201,7 +205,7 @@ $(function(){
 		var parent = $(this).parents("div.geocoder.geocoder-address");
 		var list = parent.find("div.places-list");
 		var town = $(this).parents(".form-route").find("div.geocoder-town").find("input[type=text]").val();
-		console.log(town);
+		
 		if(!list.length){
 			list = $("<div/>").addClass("places-list").html($("<ul/>"));
 			parent.append(list);
@@ -216,8 +220,7 @@ $(function(){
 					url:host,
 					data:{
 						geocode:val,
-						format:'json',
-						results:10
+						format:'json'
 					},
 					dataType:"json",
 					success:function(resp){
@@ -228,8 +231,9 @@ $(function(){
 
 							places = collect.places;
 						}
-						var html = placesToHtml(places,['street','house']);
 
+						var html = placesPropertyToHtml(places,"name","name",['street','house']);
+						
 						list.html(html);
 						list.show();
 					},
